@@ -30,11 +30,11 @@ class Minesweeper
     self.board[pos].flag
   end
 
-  def neighbors(x, y)
+  def neighbors(pos)
     new_coord = []
 
     MOVES.each do |diff|
-      new_coord << [x + diff[0], y + diff[1] ]
+      new_coord << [pos[0] + diff[0], pos[1] + diff[1] ]
     end
 
     new_coord.select {|x| x[0].between?(0, self.board.length - 1) && x[1].between?(0, self.board.length - 1) }
