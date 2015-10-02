@@ -41,6 +41,7 @@ class Tile
   ]
 
   attr_accessor :bombed
+  attr_reader :board
 
   def initialize(board)
     @revealed = false
@@ -48,12 +49,14 @@ class Tile
     @flagged = false
     @board = board
   end
-  #
-  # def inspect
-  #   p "Bomb at #{}"
-  # end
 
-  def reveal
+  def inspect
+    p "position is #{self.board.find_position(self)}"
+    p "Game Over" if revealed? && bombed?
+    
+  end
+
+  def revealed?
     self.revealed = true
   end
 
@@ -69,8 +72,10 @@ class Tile
     self.bombed = true
   end
 
-  def neighbors(pos)
+  def neighbors
     new_coord = []
+    pos = self.board.find_position(self)
+
 
     MOVES.each do |diff|
       new_coord << [pos[0] + diff[0], pos[1] + diff[1] ]
@@ -82,8 +87,8 @@ class Tile
     neighbors
   end
 
-  def neighbor_bomb_count(pos)
-    neighbors(pos).count{|x| x.bombed == true}
+  def neighbor_bomb_count
+    neighbors.count{|x| x.bombed == true}
   end
 
 end
@@ -110,6 +115,13 @@ class Board
   def [](pos)
     row, col = pos[0], pos[1]
     self.grid[row][col]
+  end
+
+  def find_position(tile)
+    x,y = nil,nil
+    self.grid.each {|row| x= self.grid.index(row) if row.include?(tile)}
+    y = self.grid[x].index(tile)
+    [x,y]
   end
 
   def tiles
