@@ -24,11 +24,22 @@ class Minesweeper
   end
 
   def save_game
-    self.saved_game = self.to_yaml
+    saved_game = self.to_yaml    #to a file
+    File.open("saved_game", "w") do |f|
+      f.puts saved_game
+    end
   end
 
   def load_game
-    YAML.load(self.saved_game).run
+    puts "Do you want to load game? (Y/N) "
+    answer = gets.chomp.upcase
+    if answer == "Y"
+      puts "Enter file name"
+      file_name = gets.chomp
+      game = File.read(file_name)
+      YAML.load(game).run
+    end
+         #load a file
   end
 
   def over?
@@ -94,11 +105,8 @@ class Minesweeper
   end
 
   def run
-    if self.saved_game != nil
-      puts "Would you like to load your saved game? (Y / N) "
-      input = gets.chomp.upcase
-      load_game if input == "Y"
-    end
+
+
     until over?
       self.board.render
       play_turn
@@ -138,5 +146,6 @@ end
 
 
 if $PROGRAM_NAME == __FILE__
+  b = Minesweeper.new.load_game
   a= Minesweeper.new.run
 end
