@@ -20,15 +20,17 @@ end
 
 class Tile
 
+  attr_accessor :bombed
+
   def initialize
     @revealed = false
     @bombed = false
     @flagged = false
   end
-
-  def inspect
-    p "Bomb at #{}"
-  end
+  #
+  # def inspect
+  #   p "Bomb at #{}"
+  # end
 
   def reveal
     self.revealed = true
@@ -47,18 +49,11 @@ class Board
   BOARD_SIZE = 9
 
   def initialize
-    @grid = Array.new(BOARD_SIZE) {Array.new(BOARD_SIZE)}
+    @grid = Array.new(BOARD_SIZE) {Array.new(BOARD_SIZE) {Tile.new}}
 
-    (0...board.grid.length).each do |row|
-      (0...board.grid.length).each do |column|
-        self[row, column] = Tile.new
-      end
-    end
-
-
-    until self.grid.flatten.count{|x| x.bombed == true}
+    until self.grid.flatten.count{|x| x.bombed == true} == 10
       x,y = rand(self.grid.length), rand(self.grid.length)
-      self[x,y].bombed = true
+      self[[x,y]].bombed = true
     end
 
   end
@@ -69,9 +64,13 @@ class Board
   end
 
 
-  def []=(pos)
+  def []=(pos, value)
     row, col = pos[0], pos[1]
-    self.grid[row][col]
+    self.grid[row][col] = value
+  end
+
+  def render
+
   end
 
 
