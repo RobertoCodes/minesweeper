@@ -1,16 +1,34 @@
 require 'byebug'
 require_relative 'board.rb'
 require_relative 'tile.rb'
+require 'yaml'
 
 
 
 class Minesweeper
 
-  attr_accessor :board, :checked_tiles
+  attr_accessor :board, :checked_tiles, :saved_game
 
   def initialize
     @board=Board.new
     @checked_tiles = []
+    @saved_game = nil
+  end
+
+  def reveal(pos) #pos = x, y
+    self.board[pos].reveal
+  end
+
+  def flag_bomb(pos)
+    self.board[pos].flag
+  end
+
+  def save_game
+    self.saved_game = self.to_yaml
+  end
+
+  def load_game
+    YAML.load(self.saved_game).run
   end
 
   def over?
@@ -21,6 +39,7 @@ class Minesweeper
   def won?
     self.board.tiles.select {|x| !x.bombed?}.all? {|y| y.revealed?}
   end
+
 
   def explore(tile)
     return if tile.neighbor_bomb_count > 0
@@ -75,24 +94,19 @@ class Minesweeper
   end
 
   def run
+    if self.saved_game != nil
+      puts "Would you like to load your saved game? (Y / N) "
+      input = gets.chomp.upcase
+      load_game if input == "Y"
+    end
     until over?
       self.board.render
       play_turn
     end
-    reveal_all
-    self.board.render
     if won?
       puts "congratulations! you won!"
     else
       puts "you lose!"
-    end
-  end
-
-  def reveal_all
-    self.board.grid.each do |row|
-      row.each do |tile|
-        tile.revealed = true
-      end
     end
   end
 
@@ -102,11 +116,25 @@ class Minesweeper
     puts "Place F in front for a flag"
     puts "Examples: 0,0     1,1       3,7"
     puts "Examples: F,0,0     F,1,1       F,3,7"
-    input = gets.chomp.split(",")
+    puts "(Input S to Save Game)"
+    input = gets.chomp.upcase.split(",")
+    if input == ["S"]
+      save_game
+      exit
+    end
+    input
 
   end
 
 end
+
+
+
+
+
+
+
+
 
 
 if $PROGRAM_NAME == __FILE__
