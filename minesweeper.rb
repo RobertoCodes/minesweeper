@@ -4,10 +4,11 @@ require 'byebug'
 
 class Minesweeper
 
-  attr_accessor :board
+  attr_accessor :board, :checked_tiles
 
   def initialize
     @board=Board.new
+    @checked_tiles = []
   end
 
   def reveal(pos) #pos = x, y
@@ -20,8 +21,21 @@ class Minesweeper
 
   def play_turn
     pos = get_input
-    @board[pos].revealed = true
+    tile = @board[pos]
+    self.checked_tiles << tile
+    tile.revealed = true
+    return "You lose! " if tile.bombed?
+    explore(tile)
+  end
 
+
+  def explore(tile)
+    return if tile.neighbor_bomb_count > 0
+    tile.neighbors.reject { |tile| self.checked_tiles.include?(tile) }.each do |neighbor_tile|
+      self.checked_tiles << neighbor_tile
+      neighbor_tile.revealed = true
+      explore(neighbor_tile)
+    end
   end
 
 
@@ -62,7 +76,7 @@ class Tile
     @board = board
   end
 
-  def inspect
+  def to_s
     if self.flagged?
       "F"
     elsif !self.revealed?
@@ -71,7 +85,7 @@ class Tile
       "O"
     elsif self.neighbor_bomb_count != 0
       "#{neighbor_bomb_count}"
-    else
+    elsce
       "_"
     end
   end
@@ -119,12 +133,14 @@ class Board
 
   BOARD_SIZE = 9
 
-  attr_accessor :grid
+  NUM_BOMBS = 1
+
+  attr_reader :grid
 
   def initialize
     @grid = Array.new(BOARD_SIZE) { Array.new(BOARD_SIZE) {Tile.new(self)} }
 
-    until tiles.count { |x| x.bombed? } == 10
+    until tiles.count { |x| x.bombed? } == NUM_BOMBS
       x,y = rand(self.grid.length), rand(self.grid.length)
       pos = [x,y]
       self[pos].set_bomb
