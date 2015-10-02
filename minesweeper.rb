@@ -1,6 +1,21 @@
 require 'byebug'
 
+
+
 class Minesweeper
+
+  MOVES = [
+    ( 1, 1),
+    (-1,-1),
+    ( 1,-1),
+    (-1, 1),
+    ( 0, 1),
+    ( 0,-1),
+    ( 1, 0),
+    (-1, 0)
+  ]
+
+
   def initialize
     @board=Board.new
 
@@ -15,10 +30,25 @@ class Minesweeper
     self.board[pos].flag
   end
 
+  def neighbors(x, y)
+    new_coord = []
+
+    MOVES.each do |diff|
+      new_coord << [x + diff[0], y + diff[1] ]
+    end
+
+    new_coord.select {|x| x[0].between?(0, self.board.length - 1) && x[1].between?(0, self.board.length - 1) }
+    neighbors = []
+    new_coord.each { |pos| neighbors << self.board[pos] }
+    neighbors
+  end
+
 end
 
 
 class Tile
+
+
 
   attr_accessor :bombed
 
@@ -42,18 +72,21 @@ class Tile
 
 end
 
+
+
 class Board
 
-  attr_accessor :grid
-
   BOARD_SIZE = 9
+
+  attr_accessor :grid
 
   def initialize
     @grid = Array.new(BOARD_SIZE) {Array.new(BOARD_SIZE) {Tile.new}}
 
     until self.grid.flatten.count{|x| x.bombed == true} == 10
       x,y = rand(self.grid.length), rand(self.grid.length)
-      self[[x,y]].bombed = true
+      pos = [x,y]
+      self[pos].bombed = true
     end
 
   end
@@ -64,10 +97,11 @@ class Board
   end
 
 
-  def []=(pos, value)
-    row, col = pos[0], pos[1]
-    self.grid[row][col] = value
-  end
+  # def []=(pos, value)
+  #   row, col = pos[0], pos[1]
+  #   self.grid[row][col] = value
+  # end
+
 
   def render
 
