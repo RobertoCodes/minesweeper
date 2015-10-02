@@ -22,10 +22,36 @@ class Minesweeper
   def play_turn
     pos = get_input
     tile = @board[pos]
+    if self.checked_tiles.include?(tile)
+      puts "Already revealed position"
+      play_turn
+    end
     self.checked_tiles << tile
     tile.revealed = true
     return "You lose! " if tile.bombed?
     explore(tile)
+  end
+
+  def run
+    until over?
+      self.board.render
+      play_turn
+    end
+    if won?
+      puts "congratulations! you won!"
+    else
+      puts "you lose!"
+    end
+
+  end
+
+  def over?
+    return true if won?
+    self.board.tiles.any? {|x| x.bombed? && x.revealed?}
+  end
+
+  def won?
+    self.board.tiles.select {|x| !x.bombed?}.all? {|y| y.revealed?}
   end
 
 
@@ -85,7 +111,7 @@ class Tile
       "O"
     elsif self.neighbor_bomb_count != 0
       "#{neighbor_bomb_count}"
-    elsce
+    else
       "_"
     end
   end
@@ -133,7 +159,7 @@ class Board
 
   BOARD_SIZE = 9
 
-  NUM_BOMBS = 1
+  NUM_BOMBS = 10
 
   attr_reader :grid
 
@@ -181,5 +207,5 @@ class Board
 end
 
 if $PROGRAM_NAME == __FILE__
-  a= Board.new
+  a= Minesweeper.new.run
 end
