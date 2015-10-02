@@ -19,9 +19,11 @@ class Minesweeper
   end
 
   def play_turn
-    get_input
+    pos = get_input
+    @board[pos].revealed = true
 
   end
+
 
   def get_input
     puts "Please enter a coordinate "
@@ -50,8 +52,8 @@ class Tile
     [-1, 0]
   ]
 
-  attr_accessor :bombed
-  attr_reader :board, :flagged, :revealed, :bombed
+  attr_accessor :bombed, :flagged, :revealed, :bombed
+  attr_reader :board
 
   def initialize(board)
     @revealed = false
@@ -67,6 +69,8 @@ class Tile
       "*"
     elsif self.bombed?
       "O"
+    elsif self.neighbor_bomb_count != 0
+      "#{neighbor_bomb_count}"
     else
       "_"
     end
