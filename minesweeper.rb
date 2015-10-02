@@ -8,8 +8,6 @@ class Minesweeper
 
   def initialize
     @board=Board.new
-
-
   end
 
   def reveal(pos) #pos = x, y
@@ -19,6 +17,18 @@ class Minesweeper
   def flag_bomb(pos)
     self.board[pos].flag
   end
+
+  def play_turn
+    get_input
+
+  end
+
+  def get_input
+    puts "Please enter a coordinate "
+    puts "Examples: 0,0     1,1       3,7"
+    gets.chomp.split(",").map(&:to_i)
+  end
+
 
 
 
@@ -41,7 +51,7 @@ class Tile
   ]
 
   attr_accessor :bombed
-  attr_reader :board
+  attr_reader :board, :flagged, :revealed, :bombed
 
   def initialize(board)
     @revealed = false
@@ -51,17 +61,23 @@ class Tile
   end
 
   def inspect
-    p "position is #{self.board.find_position(self)}"
-    p "Game Over" if revealed? && bombed?
-    
+    if self.flagged?
+      "F"
+    elsif !self.revealed?
+      "*"
+    elsif self.bombed?
+      "O"
+    else
+      "_"
+    end
   end
 
   def revealed?
-    self.revealed = true
+    self.revealed
   end
 
-  def flag
-    self.flagged = true
+  def flagged?
+    self.flagged
   end
 
   def bombed?
@@ -134,11 +150,13 @@ class Board
   #   self.grid[row][col] = value
   # end
 
-
   def render
-
+    system("clear")
+    puts "  #{(0...self.grid.length).to_a.join("  ")}"
+    self.grid.each_with_index do |row, i|
+      p "#{i} #{row.each(&:inspect).join("  ")}"
+    end
   end
-
 
 end
 
