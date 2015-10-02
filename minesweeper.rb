@@ -1,4 +1,6 @@
 require 'byebug'
+require_relative 'board.rb'
+require_relative 'tile.rb'
 
 
 
@@ -19,31 +21,7 @@ class Minesweeper
     self.board[pos].flag
   end
 
-  def play_turn
-    pos = get_input
-    tile = @board[pos]
-    if self.checked_tiles.include?(tile)
-      puts "Already revealed position"
-      play_turn
-    end
-    self.checked_tiles << tile
-    tile.revealed = true
-    return "You lose! " if tile.bombed?
-    explore(tile)
-  end
 
-  def run
-    until over?
-      self.board.render
-      play_turn
-    end
-    if won?
-      puts "congratulations! you won!"
-    else
-      puts "you lose!"
-    end
-
-  end
 
   def over?
     return true if won?
@@ -64,147 +42,81 @@ class Minesweeper
     end
   end
 
-
-  def get_input
-    puts "Please enter a coordinate "
-    puts "Examples: 0,0     1,1       3,7"
-    gets.chomp.split(",").map(&:to_i)
-  end
-
-
-
-
-end
-
-
-
-
-class Tile
-
-  MOVES = [
-    [ 1, 1],
-    [-1,-1],
-    [ 1,-1],
-    [-1, 1],
-    [ 0, 1],
-    [ 0,-1],
-    [ 1, 0],
-    [-1, 0]
-  ]
-
-  attr_accessor :bombed, :flagged, :revealed, :bombed
-  attr_reader :board
-
-  def initialize(board)
-    @revealed = false
-    @bombed = false
-    @flagged = false
-    @board = board
-  end
-
-  def to_s
-    if self.flagged?
-      "F"
-    elsif !self.revealed?
-      "*"
-    elsif self.bombed?
-      "O"
-    elsif self.neighbor_bomb_count != 0
-      "#{neighbor_bomb_count}"
-    else
-      "_"
-    end
-  end
-
-  def revealed?
-    self.revealed
-  end
-
-  def flagged?
-    self.flagged
-  end
-
-  def bombed?
-    self.bombed
-  end
-
-  def set_bomb
-    self.bombed = true
-  end
-
-  def neighbors
-    new_coord = []
-    pos = self.board.find_position(self)
-
-
-    MOVES.each do |diff|
-      new_coord << [pos[0] + diff[0], pos[1] + diff[1] ]
+  def play_turn
+    input = get_input
+    unless input.include?("F")
+      pos = input.map(&:to_i)
+      tile = @board[pos]
+      check_move(tile)
+      self.checked_tiles << tile
+      tile.revealed = true
+      tile.flagged = false
+      return "You lose! " if tile.bombed?
+      explore(tile)
     end
 
-    new_coord.select! {|x| x[0].between?(0, self.board.grid.length - 1) && x[1].between?(0, self.board.grid.length - 1) }
-    neighbors = []
-    new_coord.each { |pos| neighbors << self.board[pos] }
-    neighbors
-  end
-
-  def neighbor_bomb_count
-    neighbors.count{|x| x.bombed == true}
-  end
-
-end
-
-
-
-class Board
-
-  BOARD_SIZE = 9
-
-  NUM_BOMBS = 10
-
-  attr_reader :grid
-
-  def initialize
-    @grid = Array.new(BOARD_SIZE) { Array.new(BOARD_SIZE) {Tile.new(self)} }
-
-    until tiles.count { |x| x.bombed? } == NUM_BOMBS
-      x,y = rand(self.grid.length), rand(self.grid.length)
-      pos = [x,y]
-      self[pos].set_bomb
+    if input.include?("F")
+      pos = input[1..2].map(&:to_i)
+      tile = @board[pos]
+      check_move(tile)
+      tile.flagged = true
     end
 
   end
 
-  def [](pos)
-    row, col = pos[0], pos[1]
-    self.grid[row][col]
-  end
-
-  def find_position(tile)
-    x,y = nil,nil
-    self.grid.each {|row| x= self.grid.index(row) if row.include?(tile)}
-    y = self.grid[x].index(tile)
-    [x,y]
-  end
-
-  def tiles
-    self.grid.flatten
-  end
-
-
-  # def []=(pos, value)
-  #   row, col = pos[0], pos[1]
-  #   self.grid[row][col] = value
+  # def valid_input?(input)
+  #   return false unless input.count.between?(2,3)
+  #   if input.count == 2
+  #     return false if !input[0].between?(0,self.board.grid.length-1) &&
+  #     !input[1].between?(0,self.board.grid.length-1)
+  #   elsif input.count == 3
+  #     return false if !input[1].between?(0,self.board.grid.length-1) &&
+  #     !input[2].between?(0,self.board.grid.length-1)
+  #   else
+  #     return false if input[0] != "F"
+  #   end
+  #   true
   # end
 
-  def render
-    system("clear")
-    puts "  #{(0...self.grid.length).to_a.join("  ")}"
-    self.grid.each_with_index do |row, i|
-      p "#{i} #{row.each(&:inspect).join("  ")}"
+  def check_move(tile)
+    if self.checked_tiles.include?(tile)
+      puts "Already revealed position"
+      play_turn
     end
   end
 
+  def run
+    until over?
+      self.board.render
+      play_turn
+    end
+    if won?
+      puts "congratulations! you won!"
+    else
+      puts "you lose!"
+    end
+  end
+
+  def get_input
+    input = []
+    puts "Please enter a coordinate "
+    puts "Place F in front for a flag"
+    puts "Examples: 0,0     1,1       3,7"
+    puts "Examples: F,0,0     F,1,1       F,3,7"
+    input = gets.chomp.split(",")
+
+  end
+
 end
+
+
+
+
+
+
+
+
+
 
 if $PROGRAM_NAME == __FILE__
   a= Minesweeper.new.run
