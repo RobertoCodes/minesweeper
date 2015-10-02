@@ -13,16 +13,6 @@ class Minesweeper
     @checked_tiles = []
   end
 
-  def reveal(pos) #pos = x, y
-    self.board[pos].reveal
-  end
-
-  def flag_bomb(pos)
-    self.board[pos].flag
-  end
-
-
-
   def over?
     return true if won?
     self.board.tiles.any? {|x| x.bombed? && x.revealed?}
@@ -31,7 +21,6 @@ class Minesweeper
   def won?
     self.board.tiles.select {|x| !x.bombed?}.all? {|y| y.revealed?}
   end
-
 
   def explore(tile)
     return if tile.neighbor_bomb_count > 0
@@ -90,10 +79,20 @@ class Minesweeper
       self.board.render
       play_turn
     end
+    reveal_all
+    self.board.render
     if won?
       puts "congratulations! you won!"
     else
       puts "you lose!"
+    end
+  end
+
+  def reveal_all
+    self.board.grid.each do |row|
+      row.each do |tile|
+        tile.revealed = true
+      end
     end
   end
 
@@ -108,14 +107,6 @@ class Minesweeper
   end
 
 end
-
-
-
-
-
-
-
-
 
 
 if $PROGRAM_NAME == __FILE__
